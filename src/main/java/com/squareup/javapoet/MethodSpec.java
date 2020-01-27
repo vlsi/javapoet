@@ -51,6 +51,7 @@ public final class MethodSpec {
   public final List<TypeVariableName> typeVariables;
   public final TypeName returnType;
   public final List<ParameterSpec> parameters;
+  public final CodeBlock opaqueParameters;
   public final boolean varargs;
   public final List<TypeName> exceptions;
   public final CodeBlock code;
@@ -70,6 +71,7 @@ public final class MethodSpec {
     this.typeVariables = Util.immutableList(builder.typeVariables);
     this.returnType = builder.returnType;
     this.parameters = Util.immutableList(builder.parameters);
+    this.opaqueParameters = builder.opaqueParameters.build();
     this.varargs = builder.varargs;
     this.exceptions = Util.immutableList(builder.exceptions);
     this.defaultValue = builder.defaultValue;
@@ -105,6 +107,7 @@ public final class MethodSpec {
       parameter.emit(codeWriter, !i.hasNext() && varargs);
       firstParameter = false;
     }
+    codeWriter.emit(opaqueParameters, false);
 
     codeWriter.emit(")");
 
@@ -294,6 +297,7 @@ public final class MethodSpec {
     builder.typeVariables.addAll(typeVariables);
     builder.returnType = returnType;
     builder.parameters.addAll(parameters);
+    builder.opaqueParameters.add(opaqueParameters);
     builder.exceptions.addAll(exceptions);
     builder.code.add(code);
     builder.varargs = varargs;
@@ -308,6 +312,7 @@ public final class MethodSpec {
     private TypeName returnType;
     private final Set<TypeName> exceptions = new LinkedHashSet<>();
     private final CodeBlock.Builder code = CodeBlock.builder();
+    private final CodeBlock.Builder opaqueParameters = CodeBlock.builder();
     private boolean varargs;
     private CodeBlock defaultValue;
 
@@ -417,6 +422,11 @@ public final class MethodSpec {
 
     public Builder addParameter(Type type, String name, Modifier... modifiers) {
       return addParameter(TypeName.get(type), name, modifiers);
+    }
+
+    public Builder addOpaqueParameters(CodeBlock block) {
+      this.opaqueParameters.add(block);
+      return this;
     }
 
     public Builder varargs() {
